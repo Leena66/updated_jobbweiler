@@ -1,0 +1,274 @@
+<?php
+if (!defined('ABSPATH'))
+    die('Restricted Access');
+wp_enqueue_script('jquery-ui-datepicker');
+wp_enqueue_style('jquery-ui-css', 'http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.2/themes/smoothness/jquery-ui.css');
+
+$dateformat = jsjobs::$_configuration['date_format'];
+if ($dateformat == 'm/d/Y' || $dateformat == 'd/m/y' || $dateformat == 'm/d/y' || $dateformat == 'd/m/Y') {
+    $dash = '/';
+} else {
+    $dash = '-';
+}
+$firstdash = strpos($dateformat, $dash, 0);
+$firstvalue = substr($dateformat, 0, $firstdash);
+$firstdash = $firstdash + 1;
+$seconddash = strpos($dateformat, $dash, $firstdash);
+$secondvalue = substr($dateformat, $firstdash, $seconddash - $firstdash);
+$seconddash = $seconddash + 1;
+$thirdvalue = substr($dateformat, $seconddash, strlen($dateformat) - $seconddash);
+$js_dateformat = '%' . $firstvalue . $dash . '%' . $secondvalue . $dash . '%' . $thirdvalue;
+$js_scriptdateformat = $firstvalue . $dash . $secondvalue . $dash . $thirdvalue;
+$js_scriptdateformat = str_replace('Y', 'yy', $js_scriptdateformat);
+?>
+<script type="text/javascript">
+    jQuery(document).ready(function () {
+        jQuery('a.sort-icon').click(function (e) {
+            e.preventDefault();
+            changeSortBy();
+        });
+        jQuery('.custom_date').datepicker({dateFormat: '<?php echo $js_scriptdateformat; ?>'});
+        jQuery("div.company-container").each(function () {
+            jQuery("div#" + this.id).hover(function () {
+                jQuery("div#" + this.id + " div span.selector").show();
+            }, function () {
+                if (jQuery("div#" + this.id + " div span.selector input:checked").length > 0) {
+                    jQuery("div#" + this.id + " div span.selector").show();
+                } else {
+                    jQuery("div#" + this.id + " div span.selector").hide();
+                }
+            });
+        });
+        jQuery("div#full_background,img#popup_cross").click(function () {
+            closePopup();
+        });
+        jQuery("span#showhidefilter").click(function (e) {
+            e.preventDefault();
+            var img2 = "<?php echo jsjobs::$_pluginpath . "includes/images/filter-up.png"; ?>";
+            var img1 = "<?php echo jsjobs::$_pluginpath . "includes/images/filter-down.png"; ?>";
+            if (jQuery('.default-hidden').is(':visible')) {
+                jQuery(this).find('img').attr('src', img1);
+            } else {
+                jQuery(this).find('img').attr('src', img2);
+            }
+            jQuery(".default-hidden").toggle();
+            var height = jQuery(this).height();
+            var imgheight = jQuery(this).find('img').height();
+            var currenttop = (height - imgheight) / 2;
+            jQuery(this).find('img').css('top', currenttop);
+        });
+    });
+
+    function highlight(id) {
+        if (jQuery("div#company_" + id + " div span input:checked").length > 0) {
+            showBorder(id);
+        } else {
+            hideBorder(id);
+        }
+    }
+    function showBorder(id) {
+        jQuery("div#company_" + id).addClass('blue');
+    }
+    function hideBorder(id) {
+        jQuery("div#company_" + id).removeClass('blue');
+    }
+    function highlightAll() {
+        if (jQuery("span.selector input").is(':checked') == false) {
+            jQuery("span.selector").css('display', 'none');
+            jQuery("div.company-container").removeClass('blue');
+        }
+        if (jQuery("span.selector input").is(':checked') == true) {
+            jQuery("span.selector").css('display', 'block');
+            jQuery("div.company-container").addClass('blue');
+        }
+    }
+
+    function resetFrom() {
+        document.getElementById('searchcompany').value = '';
+        document.getElementById('searchjobcategory').value = '';
+        document.getElementById('status').value = '';
+        document.getElementById('datestart').value = '';
+        document.getElementById('dateend').value = '';
+        document.getElementById('jsjobsform').submit();
+    }
+
+    function changeSortBy() {
+        var value = jQuery('a.sort-icon').attr('data-sortby');
+        var img = '';
+        if (value == 1) {
+            value = 2;
+            img = jQuery('a.sort-icon').attr('data-image2');
+        } else {
+            img = jQuery('a.sort-icon').attr('data-image1');
+            value = 1;
+        }
+        jQuery("img#sortingimage").attr('src', img);
+        jQuery('input#sortby').val(value);
+        jQuery('form#jsjobsform').submit();
+    }
+    function changeCombo() {
+        jQuery("input#sorton").val(jQuery('select#sorting').val());
+        changeSortBy();
+    }
+</script>
+<div id="jsjobsadmin-wrapper">
+	<div id="jsjobsadmin-leftmenu">
+        <?php  JSJOBSincluder::getClassesInclude('jsjobsadminsidemenu'); ?>
+    </div>
+    <div id="jsjobsadmin-data">
+    <?php 
+    $msgkey = JSJOBSincluder::getJSModel('company')->getMessagekey();
+    JSJOBSMessages::getLayoutMessage($msgkey); 
+    ?>
+    <span class="js-admin-title">
+        <span class="heading">
+            <a href="<?php echo admin_url('admin.php?page=jsjobs'); ?>"><img src="<?php echo jsjobs::$_pluginpath; ?>includes/images/back-icon.png" /></a>
+            <span class="text-heading"><?php echo __('Companies', 'js-jobs'); ?></span>
+        </span>    
+        <a class="js-button-link button" href="<?php echo admin_url('admin.php?page=jsjobs_company&jsjobslt=formcompany'); ?>"><img src="<?php echo jsjobs::$_pluginpath; ?>includes/images/add_icon.png" /><?php echo __('Add New','js-jobs') .'&nbsp;'. __('Company', 'js-jobs') ?></a>
+    </span>
+    <?php
+    $categoryarray = array(
+        (object) array('id' => 1, 'text' => __('Company Name', 'js-jobs')),
+        (object) array('id' => 3, 'text' => __('Created', 'js-jobs')),
+        (object) array('id' => 2, 'text' => __('Category', 'js-jobs')),
+        (object) array('id' => 4, 'text' => __('Location', 'js-jobs')),
+    );
+    ?>
+    <div class="page-actions js-row no-margin">
+        <label class="js-bulk-link button" onclick="return highlightAll();" for="selectall"><input type="checkbox" name="selectall" id="selectall" value=""><?php echo __('Select All', 'js-jobs') ?></label>
+        <a class="js-bulk-link button multioperation" message="<?php echo JSJOBSMessages::getMSelectionEMessage(); ?>" confirmmessage="<?php echo __('Are you sure to delete', 'js-jobs') .' ?'; ?>" data-for="remove" href="#"><img src="<?php echo jsjobs::$_pluginpath; ?>includes/images/delete-icon.png" /><?php echo __('Delete', 'js-jobs') ?></a>
+        <?php
+        $image1 = jsjobs::$_pluginpath . "includes/images/up.png";
+        $image2 = jsjobs::$_pluginpath . "includes/images/down.png";
+        if (jsjobs::$_data['sortby'] == 1) {
+            $image = $image1;
+        } else {
+            $image = $image2;
+        }
+        ?>
+        <span class="sort">
+            <span class="sort-text"><?php echo __('Sort by', 'js-jobs'); ?>:</span>
+            <span class="sort-field"><?php echo JSJOBSformfield::select('sorting', $categoryarray, jsjobs::$_data['combosort'], '', array('class' => 'inputbox', 'onchange' => 'changeCombo();')); ?></span>
+            <a class="sort-icon" href="#" data-image1="<?php echo $image1; ?>" data-image2="<?php echo $image2; ?>" data-sortby="<?php echo jsjobs::$_data['sortby']; ?>"><img id="sortingimage" src="<?php echo $image; ?>" /></a>
+        </span>
+    </div>
+    <form class="js-filter-form" name="jsjobsform" id="jsjobsform" method="post" action="<?php echo admin_url("admin.php?page=jsjobs_company"); ?>">
+        <?php echo JSJOBSformfield::text('searchcompany', jsjobs::$_data['filter']['searchcompany'], array('class' => 'inputbox', 'placeholder' => __('Company Name', 'js-jobs'))); ?>
+        <?php echo JSJOBSformfield::select('searchjobcategory', JSJOBSincluder::getJSModel('category')->getCategoriesForCombo(), jsjobs::$_data['filter']['searchjobcategory'], __('Select','js-jobs') .'&nbsp;'. __('Category', 'js-jobs'), array('class' => 'inputbox')); ?>
+        <?php echo JSJOBSformfield::text('datestart', jsjobs::$_data['filter']['datestart'], array('class' => 'custom_date default-hidden', 'placeholder' => __('Date Start', 'js-jobs'))); ?>
+        <?php echo JSJOBSformfield::text('dateend', jsjobs::$_data['filter']['dateend'], array('class' => 'custom_date default-hidden', 'placeholder' => __('Date End', 'js-jobs'))); ?>
+        <?php echo JSJOBSformfield::select('status', JSJOBSincluder::getJSModel('common')->getListingStatus(), jsjobs::$_data['filter']['status'], __('Select Status', 'js-jobs'), array('class' => 'inputbox')); ?>
+        <?php echo JSJOBSformfield::hidden('JSJOBS_form_search', 'JSJOBS_SEARCH'); ?>
+        <div class="filterbutton">
+            <?php echo JSJOBSformfield::submitbutton('btnsubmit', __('Search', 'js-jobs'), array('class' => 'button')); ?>
+            <?php echo JSJOBSformfield::button('reset', __('Reset', 'js-jobs'), array('class' => 'button', 'onclick' => 'resetFrom();')); ?>
+        </div>
+        <?php echo JSJOBSformfield::hidden('sortby', jsjobs::$_data['sortby']); ?>
+        <?php echo JSJOBSformfield::hidden('sorton', jsjobs::$_data['sorton']); ?>
+        <span id="showhidefilter"><img src="<?php echo jsjobs::$_pluginpath; ?>includes/images/filter-down.png"/></span>
+    </form>
+    <hr class="listing-hr" />
+    <?php
+    if (!empty(jsjobs::$_data[0])) {
+        ?>
+        <form id="jsjobs-list-form" method="post" action="<?php echo admin_url("admin.php?page=jsjobs_company"); ?>">
+            <?php
+            $wpdir = wp_upload_dir();
+            foreach (jsjobs::$_data[0] AS $company) {
+                if ($company->logofilename != "") {
+                    $data_directory = JSJOBSincluder::getJSModel('configuration')->getConfigurationByConfigName('data_directory');
+                    $path = $wpdir['baseurl'] . '/' . $data_directory . '/data/employer/comp_' . $company->id . '/logo/' . $company->logofilename;
+                } else {
+                    $path = jsjobs::$_pluginpath . '/includes/images/default_logo.png';
+                }
+                $approved = ($company->status == 1) ? '<span style="color:Green">' . __('Approved', 'js-jobs') . '</span>' : '<span style="color:Green">' . __('Rejected', 'js-jobs') . '</span>';
+                ?>
+                <div id="company_<?php echo $company->id; ?>" class="company-container js-col-lg-12 js-col-md-12 no-padding">
+                    <div id="item-data" class="item-data js-row no-margin">
+                        <span id="selector_<?php echo $company->id; ?>" class="selector"><input type="checkbox" onclick="javascript:highlight(<?php echo $company->id; ?>);" class="jsjobs-cb" id="jsjobs-cb" name="jsjobs-cb[]" value="<?php echo $company->id; ?>" /></span>
+                        <div class="item-icon">
+                            <a class="" href="<?php echo admin_url('admin.php?page=jsjobs_company&jsjobslt=formcompany&jsjobsid='.$company->id); ?>"><img src="<?php echo $path; ?>"/></a>
+                        </div>
+                        <div class="item-details">
+                            <div class="item-title js-col-lg-12 js-col-md-12 js-col-xs-8 no-padding">
+                                <span class="value">
+                                    <a class="" href="<?php echo admin_url('admin.php?page=jsjobs_company&jsjobslt=formcompany&jsjobsid='.$company->id); ?>"><?php echo $company->name; ?></a>
+                                </span>
+                                <div class="flag-and-type">
+                                    <?php
+                                    if ($company->status == 0) {
+                                        echo '<span class="flag pending">' . __('Pending', 'js-jobs') . '</span>';
+                                    } elseif ($company->status == 1) {
+                                        echo '<span class="flag approved">' . __('Approved', 'js-jobs') . '</span>';
+                                    } elseif ($company->status == -1) {
+                                        echo '<span class="flag rejected">' . __('Rejected', 'js-jobs') . '</span>';
+                                    }
+                                    ?> 
+                                </div>
+                            </div>
+                            <div class="item-values js-col-lg-6 js-col-md-6 js-col-xs-12 no-padding">
+                                <span class="heading">
+                                    <?php 
+                                        if(!isset(jsjobs::$_data['fields']['category'])){
+                                            jsjobs::$_data['fields']['category'] = JSJOBSincluder::getJSModel('fieldordering')->getFieldTitleByFieldAndFieldfor('category',1);
+                                        }
+                                        echo __(jsjobs::$_data['fields']['category'], 'js-jobs') . ": "; 
+                                    ?>
+                                </span>
+                                <span class="value"><?php echo __($company->cat_title,'js-jobs'); ?></span>
+                            </div>
+                            <div class="item-values js-col-lg-6 js-col-md-6 js-col-xs-12 no-padding">
+                                <span class="heading">
+                                    <?php 
+                                        if(!isset(jsjobs::$_data['fields']['url'])){
+                                            jsjobs::$_data['fields']['url'] = JSJOBSincluder::getJSModel('fieldordering')->getFieldTitleByFieldAndFieldfor('url',1);
+                                        }
+                                        echo __(jsjobs::$_data['fields']['url'], 'js-jobs') . ": "; 
+                                    ?>
+                                </span>
+                                <span class="url">
+                                    <a class="" href="<?php echo $company->url; ?>" target="_blank"><?php echo $company->url; ?></a>
+                                </span>
+                            </div>
+                            <div class="item-values js-col-lg-12 js-col-md-12 js-col-xs-12 no-padding">
+                                <span class="heading"><?php echo __('Location', 'js-jobs') . ': '; ?></span>
+                                <span class="value"><?php echo JSJOBSincluder::getJSModel('city')->getLocationDataForView($company->city); ?></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="item-actions" class="item-actions js-row no-margin">
+                        <div class="item-text-block js-col-lg-2 js-col-md-2 js-col-xs-12 no-padding">
+                            <span class="heading"><?php echo __('Created', 'js-jobs') . ': '; ?></span><span class="item-action-text"><?php echo date_i18n(jsjobs::$_configuration['date_format'], strtotime($company->created)); ?></span>
+                        </div>
+                        <div class="item-values js-col-lg-10 js-col-md-10 js-col-xs-12 no-padding">
+                            <a class="js-action-link button" href="admin.php?page=jsjobs_company&task=remove&action=jsjobtask&jsjobs-cb[]=<?php echo $company->id; ?>&callfrom=1" onclick="return confirm('<?php echo __('Are you sure to delete','js-jobs').' ?'; ?>');"><img src="<?php echo jsjobs::$_pluginpath; ?>includes/images/delete-icon.png" alt="del"  message="<?php echo JSJOBSMessages::getMSelectionEMessage(); ?>" />&nbsp;&nbsp;<?php echo __('Delete', 'js-jobs'); ?></a>
+                            <a class="js-action-link button" href="admin.php?page=jsjobs_company&task=enforcedelete&action=jsjobtask&id=<?php echo $company->id; ?>&callfrom=1"onclick="return confirmdelete('<?php echo __('This will delete every thing about this record','js-jobs').'. '.__('Are you sure to delete','js-jobs').' ?'; ?>');"><img src="<?php echo jsjobs::$_pluginpath; ?>includes/images/force-delete.png" /><?php echo __('Enforce Delete', 'js-jobs') ?></a>
+                            
+                            <a class="js-action-link button" href="<?php echo admin_url('admin.php?page=jsjobs_departments&jsjobslt=departments&companyid='.$company->id); ?>"><img src="<?php echo jsjobs::$_pluginpath; ?>includes/images/departments.png" /><?php echo __('Departments', 'js-jobs') ?></a>
+                        </div>
+                    </div>
+                </div>
+                <?php
+            }
+            ?>
+            <?php echo JSJOBSformfield::hidden('action', 'company_remove'); ?>
+            <?php echo JSJOBSformfield::hidden('task', ''); ?>
+            <?php echo JSJOBSformfield::hidden('form_request', 'jsjobs'); ?>
+            <?php echo JSJOBSformfield::hidden('callfrom', 1); ?>
+        </form>
+        <?php
+        if (jsjobs::$_data[1]) {
+            echo '<div class="tablenav"><div class="tablenav-pages">' . jsjobs::$_data[1] . '</div></div>';
+        }
+    } else {
+        $msg = __('No record found','js-jobs');
+        $link[] = array(
+                    'link' => 'admin.php?page=jsjobs_company&jsjobslt=formcompany',
+                    'text' => __('Add New','js-jobs') .'&nbsp;'. __('Company','js-jobs')
+                );
+        echo JSJOBSlayout::getNoRecordFound($msg,$link);
+    }
+    ?>
+</div>
+</div>

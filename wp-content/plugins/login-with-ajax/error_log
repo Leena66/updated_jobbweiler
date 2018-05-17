@@ -1,0 +1,4 @@
+[17-Dec-2017 01:25:45 UTC] PHP Fatal error:  Call to undefined function add_action() in /home/jobbweiler/public_html/wp-content/plugins/login-with-ajax/login-with-ajax-admin.php on line 416
+[17-Dec-2017 01:25:51 UTC] PHP Fatal error:  Call to undefined function add_action() in /home/jobbweiler/public_html/wp-content/plugins/login-with-ajax/login-with-ajax-admin.php on line 416
+[17-Dec-2017 01:25:52 UTC] PHP Fatal error:  Call to undefined function add_action() in /home/jobbweiler/public_html/wp-content/plugins/login-with-ajax/login-with-ajax-admin.php on line 416
+[17-Dec-2017 01:25:54 UTC] PHP Fatal error:  Call to undefined function add_action() in /home/jobbweiler/public_html/wp-content/plugins/login-with-ajax/login-with-ajax-admin.php on line 416
